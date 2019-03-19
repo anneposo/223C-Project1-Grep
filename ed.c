@@ -531,42 +531,43 @@ void quit(int n) {
 	exit(0);
 }
 
-void rdelete(unsigned int *ad1, unsigned int *ad2) {
-	unsigned int *a1, *a2, *a3;
-
-	a1 = ad1;
-	a2 = ad2+1;
-	a3 = dol;
-	dol -= a2 - a1;
-	do {
-		*a1++ = *a2++;
-	} while (a2 <= a3);
-	a1 = ad1;
-	if (a1 > dol)
-		a1 = dol;
-	dot = a1;
-	fchange = 1;
-}
-
-void gdelete(void) {
-	unsigned int *a1, *a2, *a3;
-
-	a3 = dol;
-	for (a1=zero; (*a1&01)==0; a1++)
-		if (a1>=a3)
-			return;
-	for (a2=a1+1; a2<=a3;) {
-		if (*a2&01) {
-			a2++;
-			dot = a1;
-		} else
-			*a1++ = *a2++;
-	}
-	dol = a1-1;
-	if (dot>dol)
-		dot = dol;
-	fchange = 1;
-}
+//**************************************Removed delete functions - do not need to deal with delete in simple grep
+// void rdelete(unsigned int *ad1, unsigned int *ad2) {
+// 	unsigned int *a1, *a2, *a3;
+//
+// 	a1 = ad1;
+// 	a2 = ad2+1;
+// 	a3 = dol;
+// 	dol -= a2 - a1;
+// 	do {
+// 		*a1++ = *a2++;
+// 	} while (a2 <= a3);
+// 	a1 = ad1;
+// 	if (a1 > dol)
+// 		a1 = dol;
+// 	dot = a1;
+// 	fchange = 1;
+// }
+//
+// void gdelete(void) {
+// 	unsigned int *a1, *a2, *a3;
+//
+// 	a3 = dol;
+// 	for (a1=zero; (*a1&01)==0; a1++)
+// 		if (a1>=a3)
+// 			return;
+// 	for (a2=a1+1; a2<=a3;) {
+// 		if (*a2&01) {
+// 			a2++;
+// 			dot = a1;
+// 		} else
+// 			*a1++ = *a2++;
+// 	}
+// 	dol = a1-1;
+// 	if (dot>dol)
+// 		dot = dol;
+// 	fchange = 1;
+// }
 
 char *
 getline(unsigned int tl) {
@@ -681,10 +682,11 @@ void global(int k) {
 	/*
 	 * Special case: g/.../d (avoid n^2 algorithm)
 	 */
-	if (globuf[0]=='d' && globuf[1]=='\n' && globuf[2]=='\0') {
-		gdelete();
-		return;
-	}
+	 //***************************************************************Removed - No need to deal with this special case in simple grep
+	// if (globuf[0]=='d' && globuf[1]=='\n' && globuf[2]=='\0') {
+	// 	gdelete();
+	// 	return;
+	// }
 	for (a1=zero; a1<=dol; a1++) {
 		if (*a1 & 01) {
 			*a1 &= ~01;
@@ -695,27 +697,28 @@ void global(int k) {
 	}
 }
 
-void join(void) {
-	char *gp, *lp;
-	unsigned int *a1;
-
-	nonzero();
-	gp = genbuf;
-	for (a1=addr1; a1<=addr2; a1++) {
-		lp = getline(*a1);
-		while (*gp = *lp++)
-			if (gp++ >= &genbuf[LBSIZE-2])
-				error(Q);
-	}
-	lp = linebuf;
-	gp = genbuf;
-	while (*lp++ = *gp++)
-		;
-	//*addr1 = putline();
-	if (addr1<addr2)
-		rdelete(addr1+1, addr2);
-	dot = addr1;
-}
+//*******************************************Removed join function
+// void join(void) {
+// 	char *gp, *lp;
+// 	unsigned int *a1;
+//
+// 	nonzero();
+// 	gp = genbuf;
+// 	for (a1=addr1; a1<=addr2; a1++) {
+// 		lp = getline(*a1);
+// 		while (*gp = *lp++)
+// 			if (gp++ >= &genbuf[LBSIZE-2])
+// 				error(Q);
+// 	}
+// 	lp = linebuf;
+// 	gp = genbuf;
+// 	while (*lp++ = *gp++)
+// 		;
+// 	//*addr1 = putline();
+// 	if (addr1<addr2)
+// 		rdelete(addr1+1, addr2);
+// 	dot = addr1;
+// }
 
 //****************************************** We don't need to substitute for our SIMPLE GREP program, so removed.
 
@@ -756,7 +759,7 @@ void compile(int eof) {
 		return;
 	}
 	nbra = 0;
-	if (c=='^') {
+	if (c=='^') { 		// for grep - anchoring in beginning
 		c = getchr();
 		*ep++ = CCIRC;
 	}
@@ -820,13 +823,13 @@ void compile(int eof) {
 			*lastep |= STAR;
 			continue;
 
-		case '$':
+		case '$':					// for searching only for instances at the end of line
 			if ((peekc=getchr()) != eof && peekc!='\n')
 				goto defchar;
 			*ep++ = CDOL;
 			continue;
 
-		case '[':
+		case '[':				// used for searching for pattern consisting of a range of characters
 			*ep++ = CCL;
 			*ep++ = 0;
 			cclcnt = 1;
