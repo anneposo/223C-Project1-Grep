@@ -479,7 +479,7 @@ int append(int (*f)(void), unsigned int *a) {
 			dot += zero - ozero;
 			dol += zero - ozero;
 		}
-		tl = putline();
+		//tl = putline();
 		nline++;
 		a1 = ++dol;
 		a2 = a1+1;
@@ -585,32 +585,8 @@ getline(unsigned int tl) {
 	return(linebuf);
 }
 
-int putline(void) {
-	char *bp, *lp;
-	int nl;
-	unsigned int tl;
+//************putline function edits text, we don't want that in our SIMPLE GREP program
 
-	fchange = 1;
-	lp = linebuf;
-	tl = tline;
-	bp = getblock(tl, WRITE);
-	nl = nleft;
-	tl &= ~((BLKSIZE/2)-1);
-	while (*bp = *lp++) {
-		if (*bp++ == '\n') {
-			*--bp = 0;
-			linebp = lp;
-			break;
-		}
-		if (--nl == 0) {
-			bp = getblock(tl+=(BLKSIZE/2), WRITE);
-			nl = nleft;
-		}
-	}
-	nl = tline;
-	tline += (((lp-linebuf)+03)>>1)&077776;
-	return(nl);
-}
 
 char *
 getblock(unsigned int atl, int iof) {
@@ -735,204 +711,24 @@ void join(void) {
 	gp = genbuf;
 	while (*lp++ = *gp++)
 		;
-	*addr1 = putline();
+	//*addr1 = putline();
 	if (addr1<addr2)
 		rdelete(addr1+1, addr2);
 	dot = addr1;
 }
 
-void substitute(int inglob) {
-	int *mp, nl;
-	unsigned int *a1;
-	int gsubf;
-	int n;
+//****************************************** We don't need to substitute for our SIMPLE GREP program, so removed.
 
-	n = getnum();	/* OK even if n==0 */
-	gsubf = compsub();
-	for (a1 = addr1; a1 <= addr2; a1++) {
-		if (execute(a1)){
-			unsigned *ozero;
-			int m = n;
-			do {
-				int span = loc2-loc1;
-				if (--m <= 0) {
-					dosub();
-					if (!gsubf)
-						break;
-					if (span==0) {	/* null RE match */
-						if (*loc2=='\0')
-							break;
-						loc2++;
-					}
-				}
-			} while (execute((unsigned *)0));
-			if (m <= 0) {
-				inglob |= 01;
-				subnewa = putline();
-				*a1 &= ~01;
-				if (anymarks) {
-					for (mp = names; mp < &names[26]; mp++)
-						if (*mp == *a1)
-							*mp = subnewa;
-				}
-				subolda = *a1;
-				*a1 = subnewa;
-				ozero = zero;
-				nl = append(getsub, a1);
-				nl += zero-ozero;
-				a1 += nl;
-				addr2 += nl;
-			}
-		}
-	}
-	if (inglob==0)
-		error(Q);
-}
+//********************************Removed compsub() - related to sub, we don't need in SIMPLE GREP
+//****************************************Removed getsub() function - related to sub, we don't need in simple grep program
 
-int compsub(void) {
-	int seof, c;
-	char *p;
+//*****************************************Removed dosub(), related to sub, no need in simple grep program
 
-	if ((seof = getchr()) == '\n' || seof == ' ')
-		error(Q);
-	compile(seof);
-	p = rhsbuf;
-	for (;;) {
-		c = getchr();
-		if (c=='\\')
-			c = getchr() | 0200;
-		if (c=='\n') {
-			if (globp && globp[0])	/* last '\n' does not count */
-				c |= 0200;
-			else {
-				peekc = c;
-				pflag++;
-				break;
-			}
-		}
-		if (c==seof)
-			break;
-		*p++ = c;
-		if (p >= &rhsbuf[LBSIZE/2])
-			error(Q);
-	}
-	*p++ = 0;
-	if ((peekc = getchr()) == 'g') {
-		peekc = 0;
-		newline();
-		return(1);
-	}
-	newline();
-	return(0);
-}
+//***************************************Removed move() - we don't need to move flags for simple grep
 
-int getsub(void) {
-	char *p1, *p2;
 
-	p1 = linebuf;
-	if ((p2 = linebp) == 0)
-		return(EOF);
-	while (*p1++ = *p2++)
-		;
-	linebp = 0;
-	return(0);
-}
+//*********************************************************Removed reverse() function - there is no need for reversing in our SIMPLE GREP program
 
-void dosub(void) {
-	char *lp, *sp, *rp;
-	int c;
-
-	lp = linebuf;
-	sp = genbuf;
-	rp = rhsbuf;
-	while (lp < loc1)
-		*sp++ = *lp++;
-	while (c = *rp++&0377) {
-		if (c=='&') {
-			sp = place(sp, loc1, loc2);
-			continue;
-		} else if (c&0200 && (c &= 0177) >='1' && c < nbra+'1') {
-			sp = place(sp, braslist[c-'1'], braelist[c-'1']);
-			continue;
-		}
-		*sp++ = c&0177;
-		if (sp >= &genbuf[LBSIZE])
-			error(Q);
-	}
-	lp = loc2;
-	loc2 = sp - genbuf + linebuf;
-	while (*sp++ = *lp++)
-		if (sp >= &genbuf[LBSIZE])
-			error(Q);
-	lp = linebuf;
-	sp = genbuf;
-	while (*lp++ = *sp++)
-		;
-}
-
-char *
-place(char *sp, char *l1, char *l2) {
-	while (l1 < l2) {
-		*sp++ = *l1++;
-		if (sp >= &genbuf[LBSIZE])
-			error(Q);
-	}
-	return(sp);
-}
-
-void move(int cflag) {
-	unsigned int *adt, *ad1, *ad2;
-
-	nonzero();
-	if ((adt = address())==0)	/* address() guarantees addr is in range */
-		error(Q);
-	newline();
-	if (cflag) {
-		unsigned int *ozero;
-		int delta;
-
-		ad1 = dol;
-		ozero = zero;
-		append(getcopy, ad1++);
-		ad2 = dol;
-		delta = zero - ozero;
-		ad1 += delta;
-		adt += delta;
-	} else {
-		ad2 = addr2;
-		for (ad1 = addr1; ad1 <= ad2;)
-			*ad1++ &= ~01;
-		ad1 = addr1;
-	}
-	ad2++;
-	if (adt<ad1) {
-		dot = adt + (ad2-ad1);
-		if ((++adt)==ad1)
-			return;
-		reverse(adt, ad1);
-		reverse(ad1, ad2);
-		reverse(adt, ad2);
-	} else if (adt >= ad2) {
-		dot = adt++;
-		reverse(ad1, ad2);
-		reverse(ad2, adt);
-		reverse(ad1, adt);
-	} else
-		error(Q);
-	fchange = 1;
-}
-
-void reverse(unsigned int *a1, unsigned int *a2) {
-	int t;
-
-	for (;;) {
-		t = *--a2;
-		if (a2 <= a1)
-			return;
-		*a2 = *a1;
-		*a1++ = t;
-	}
-}
 
 int getcopy(void) {
 	if (addr1 > addr2)
