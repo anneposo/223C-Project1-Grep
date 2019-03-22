@@ -1,0 +1,9 @@
+e lotr.txt
+g/ring
+g/[dl]ie
+e sam_wotw.txt
+g/?$
+g/[fw]all
+e license_plate.txt
+g/[0-9][0-9][0-9]
+
