@@ -4,15 +4,20 @@
 #define	ESIZE	256
 #define	NBRA	5
 #define GBSIZE 256
+#define CCHR 2
+#define CDOT 4
+#define CCL 6
+#define CDOL 10
+#define CEOF 11
+#define NCCL 8
+#define CBRA 1
+#define CKET 12
+#define CBACK 14
+#define STAR 01
 
-//const int BLKSIZE = 4096;
 const int NBLK = 2047;
-//const int FNSIZE = 128;  const int LBSIZE = 4096; const int ESIZE = 256;
-//const int GBSIZE = 256;
-//const int NBRA = 5;
-const int KSIZE = 9;  const int CBRA = 1;
-const int CCHR = 2;  const int CDOT = 4;  const int CCL = 6;  const int NCCL = 8;  const int CDOL = 10;
-const int CEOF = 11;  const int CKET = 12;  const int CBACK = 14;  const int CCIRC = 15;  const int STAR = 01;
+const int KSIZE = 9;
+const int CCIRC = 15;
 const int READ = 0;  const int WRITE = 1;  /* const int EOF = -1; */
 
 int  peekc, lastc, given, ninbuf, io, pflag;
