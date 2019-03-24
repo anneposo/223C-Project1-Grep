@@ -46,15 +46,11 @@ void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
     case EOF:  return;
     case '\n':  if (a1 == 0) { a1 = dot + 1;  addr2 = a1;  addr1 = a1; }
                 if (lastsep == ';') { addr1 = a1; }  print();  continue;
-    case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init();
-               addr2 = zero;  goto caseread;
     case 'g':  global(1);  continue;
     case 'p':  case 'P':  newline();  print();  continue;
     case 'Q':  fchange = 0;  case 'q':  setnoaddr();  newline();  quit(0);
-    caseread:
-        if ((io = open((const char*)file, 0)) < 0) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
-                 ninbuf = 0;  c = zero != dol;
-        append(getfile, addr2);  exfile();  fchange = c; continue;
+    case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init();
+               addr2 = zero;  caseread(c); continue;
     case 'z':  grepline();  continue;
 
     case 'a':  /* add(0);  continue; */  // fallthrough
@@ -89,6 +85,13 @@ void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
     }  error(Q);
   }
 }
+
+// created function caseread to remove goto statements
+void caseread(int c) {
+  if ((io = open((const char*)file, 0)) < 0) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
+         ninbuf = 0;  c = zero != dol;
+  append(getfile, addr2);  exfile();  fchange = c; }
+
 //void add(int i) {  if (i && (given || dol>zero)) {  addr1--;  addr2--;  }  squeeze(0);  newline();  append(gettty, addr2); }
 unsigned int* address(void) {  int sign;  unsigned int *a, *b;  int opcnt, nextopand;  int c;
   nextopand = -1;  sign = 1;  opcnt = 0;  a = dot;
@@ -136,15 +139,17 @@ int advance(char *lp, char *ep) {  char *curlp;  int i;
         if (braelist[i = *ep++] == 0) { error(Q); }  curlp = lp;
         while (backref(i, lp)) { lp += braelist[i] - braslist[i]; }
         while (lp >= curlp) {  if (advance(lp, ep)) { return(1); }  lp -= braelist[i] - braslist[i];  }  continue;
-      case CDOT|STAR:  curlp = lp;  while (*lp++) { }                goto star;
-      case CCHR|STAR:  curlp = lp;  while (*lp++ == *ep) { }  ++ep;  goto star;
+      case CDOT|STAR:  curlp = lp;  while (*lp++) { }                star(lp, ep, curlp);
+      case CCHR|STAR:  curlp = lp;  while (*lp++ == *ep) { }  ++ep;  star(lp, ep, curlp);
       case CCL|STAR:
-      case NCCL|STAR:  curlp = lp;  while (cclass(ep, *lp++, ep[-1] == (CCL|STAR))) { }  ep += *ep;  goto star;
-      star:  do {  lp--;  if (advance(lp, ep)) { return(1); } } while (lp > curlp);  return(0);
+      case NCCL|STAR:  curlp = lp;  while (cclass(ep, *lp++, ep[-1] == (CCL|STAR))) { }  ep += *ep;  star(lp, ep, curlp);
       default: error(Q);
     }
   }
 }
+// created function star to remove goto statements
+int star(char *lp, char* ep, char* curlp) { do {  lp--;  if (advance(lp, ep)) { return(1); } } while (lp > curlp);  return(0); }
+
 int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot;  int nline, tl;  nline = 0;  dot = a;
   while ((*f)() == 0) {
     if ((dol-zero)+1 >= nlall) {  unsigned *ozero = zero;  nlall += 1024;
@@ -171,35 +176,40 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
   if (c == eof) {  if (*ep==0) { error(Q); }  return; }
   nbra = 0;  if (c=='^') { c = getchr();  *ep++ = CCIRC; }  peekc = c;  lastep = 0;
   for (;;) {
-    if (ep >= &expbuf[ESIZE]) { goto cerror; }  c = getchr();  if (c == '\n') { peekc = c;  c = eof; }
-    if (c==eof) { if (bracketp != bracket) { goto cerror; }  *ep++ = CEOF;  return;  }
+    if (ep >= &expbuf[ESIZE]) { cerror(); }  c = getchr();  if (c == '\n') { peekc = c;  c = eof; }
+    if (c==eof) { if (bracketp != bracket) { cerror(); }  *ep++ = CEOF;  return;  }
     if (c!='*') { lastep = ep; }
     //********************************switch case below used for grep options - searches at beginning/end of lines, ranges, etc..
     switch (c) {
       case '\\':
         if ((c = getchr())=='(') {
-          if (nbra >= NBRA) { goto cerror; }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
+          if (nbra >= NBRA) { cerror(); }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
         }
-        if (c == ')') {  if (bracketp <= bracket) { goto cerror; }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
+        if (c == ')') {  if (bracketp <= bracket) { cerror(); }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
         if (c>='1' && c<'1'+NBRA) { *ep++ = CBACK;  *ep++ = c-'1';  continue; }
-        *ep++ = CCHR;  if (c=='\n') { goto cerror; }  *ep++ = c;  continue;
+        *ep++ = CCHR;  if (c=='\n') { cerror(); }  *ep++ = c;  continue;
       case '.': *ep++ = CDOT;  continue;
-      case '\n':  goto cerror;
-      case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { goto defchar; }  *lastep |= STAR; continue;
-      case '$':  if ((peekc=getchr()) != eof && peekc!='\n') { goto defchar; }  *ep++ = CDOL;  continue;
+      case '\n':  cerror();
+      case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { defchar(c, ep); }  *lastep |= STAR; continue;
+      case '$':  if ((peekc=getchr()) != eof && peekc!='\n') { defchar(c, ep); }  *ep++ = CDOL;  continue;
       case '[':  *ep++ = CCL;  *ep++ = 0;  cclcnt = 1;  if ((c=getchr()) == '^') {  c = getchr();  ep[-2] = NCCL; }
         do {
-          if (c=='\n') { goto cerror; }  if (c=='-' && ep[-1]!=0) {
+          if (c=='\n') { cerror(); }  if (c=='-' && ep[-1]!=0) {
             if ((c=getchr())==']') { *ep++ = '-';  cclcnt++;  break; }
-            while (ep[-1] < c) {  *ep = ep[-1] + 1;  ep++;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { goto cerror; } }
+            while (ep[-1] < c) {  *ep = ep[-1] + 1;  ep++;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { cerror(); } }
           }
-          *ep++ = c;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { goto cerror; }
+          *ep++ = c;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { cerror(); }
         } while ((c = getchr()) != ']');
         lastep[1] = cclcnt;  continue;
-      defchar:  default:  *ep++ = CCHR;  *ep++ = c;
+      default:  *ep++ = CCHR;  *ep++ = c;
     }
-  }  cerror:  expbuf[0] = 0;  nbra = 0;  error(Q);
+  }
 }
+// created function defchar to remove goto statements
+void defchar(int c, char *ep) { *ep++ = CCHR;  *ep++ = c; }
+
+// created function cerror to remove goto statements
+void cerror(){  expbuf[0] = 0;  nbra = 0;  error(Q); }
 
 void error(char *s) {  int c;  wrapp = 0;  listf = 0;  listn = 0;  putchr_('?');  puts_(s);
   count = 0;  lseek(0, (long)0, 2);  pflag = 0;  if (globp) { lastc = '\n'; }  globp = 0;  peekc = lastc;

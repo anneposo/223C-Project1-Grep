@@ -46,3 +46,7 @@ void setwide(void);  void setnoaddr(void);  void squeeze(int);  void substitute(
 jmp_buf  savej;
 char grepbuf[GBSIZE];
 void greperror(char);  void grepline(void);
+void cerror();  // created function to remove goto statements
+void defchar(int, char*); // created function to remove goto statements
+int star(char *lp, char* ep, char* curlp); // created function to remove goto statements
+void caseread(int c); // created function to remove goto statements
