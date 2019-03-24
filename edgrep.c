@@ -408,7 +408,7 @@ void putchr_(int ac) {  char *lp = linp;  int c = ac;
   *lp++ = c;
   if (c == '\n' || lp >= &line[64]) {  linp = line;  write(oflag ? 2 : 1, line, lp - line);  return;  }  linp = lp;
 }
-void putd(void) {  int r = count % 10;  count /= 10;  if (count) { putd(); }  putchr_(r + '0');  }
+void putd(void) {  int r = count % 10;  count /= 10;  if (count) { putd(); }  putchr_(r + '0');  } //******* putd() counts and prints the number of characters in the text file
 void putfile(void) {  unsigned int *a1;  char *fp, *lp;  int n, nib = BLKSIZE;  fp = genbuf;  a1 = addr1;
   do {
     lp = getline_blk(*a1++);
@@ -430,7 +430,7 @@ int putline(void) {  char *bp, *lp;  int nl;  unsigned int tl;  fchange = 1;  lp
   }
   nl = tline;  tline += (((lp - linebuf) + 03) >> 1) & 077776;  return(nl);
 }
-void puts_(char *sp) {  col = 0;  while (*sp) { putchr_(*sp++); }  putchr_('\n');  }
+void puts_(char *sp) {  col = 0;  while (*sp) { putchr_(*sp++); }  putchr_('\n');  } //******* puts_() prints the grep text and puts newlines at the end of sentences
 void quit(int n) { if (vflag && fchange && dol!=zero) {  fchange = 0;  error(Q);  }  unlink(tfname); exit(0); }
 //void rdelete(unsigned int *ad1, unsigned int *ad2) {
 //  unsigned int *a1 = ad1, *a2, *a3 = dol;  a2 = ad2+1;  dol -= a2 - a1;
