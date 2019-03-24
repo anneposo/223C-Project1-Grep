@@ -198,7 +198,7 @@ int execute(unsigned int *addr) {  char *p1, *p2 = expbuf;  int c;
   }
   do {  /* regular algorithm */   if (advance(p1, p2)) {  loc1 = p1;  return(1);  }  } while (*p1++);  return(0);
 }
-void exfile(void) {  close(io);  io = -1;  if (vflag) { putd();  putchr_('\n'); }  } //************************************prints the text file's character count and appends newline
+void exfile(void) {  close(io);  io = -1;  if (vflag) { putd();  putchr_('\n'); }  } //************************************exits file, prints the text file's character count and appends newline
 void filename(int comm) {  char *p1, *p2;  int c;  count = 0;  c = getchr();
   if (c == '\n' || c == EOF) {    //***************************************file = filename, savedfile = file's contents?
     p1 = savedfile;  if (*p1 == 0 && comm != 'f') { error(Q); }  p2 = file;  while ((*p2++ = *p1++) == 1) { }  return;
