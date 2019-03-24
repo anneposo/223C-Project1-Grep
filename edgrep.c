@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {  char *p1, *p2;  SIG_TYP oldintr;  oldquit = 
   while (argc > 1 && **argv=='-') {
     switch((*argv)[1]) {
     case '\0': vflag = 0;  break;
-    case 'q': signal(SIGQUIT, SIG_DFL);  vflag = 1;  break;
+    case 'q': signal(SIGQUIT, SIG_DFL);  vflag = 1;  break; // quits program
     case 'o': oflag = 1;  break;
     }
     argv++;  argc--;
@@ -56,14 +56,12 @@ void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
     }  error(Q);
   }
 }
-
 // created function caseread to remove goto statements
 void caseread(int c) {
   if ((io = open((const char*)file, 0)) < 0) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
          ninbuf = 0;  c = zero != dol;
-  append(getfile, addr2);  exfile();  fchange = c; }
+  append(getfile, addr2); puts_(file); exfile();  fchange = c; } //****************************************************** Added puts_(file) to print leading filename
 
-//void add(int i) {  if (i && (given || dol>zero)) {  addr1--;  addr2--;  }  squeeze(0);  newline();  append(gettty, addr2); }
 unsigned int* address(void) {  int sign;  unsigned int *a, *b;  int opcnt, nextopand;  int c;
   nextopand = -1;  sign = 1;  opcnt = 0;  a = dot;
   do {
@@ -200,9 +198,9 @@ int execute(unsigned int *addr) {  char *p1, *p2 = expbuf;  int c;
   }
   do {  /* regular algorithm */   if (advance(p1, p2)) {  loc1 = p1;  return(1);  }  } while (*p1++);  return(0);
 }
-void exfile(void) {  close(io);  io = -1;  if (vflag) {  putd();  putchr_('\n'); }  }
+void exfile(void) {  close(io);  io = -1;  if (vflag) { putd();  putchr_('\n'); }  } //************************************prints the text file's character count and appends newline
 void filename(int comm) {  char *p1, *p2;  int c;  count = 0;  c = getchr();
-  if (c == '\n' || c == EOF) {
+  if (c == '\n' || c == EOF) {    //***************************************file = filename, savedfile = file's contents?
     p1 = savedfile;  if (*p1 == 0 && comm != 'f') { error(Q); }  p2 = file;  while ((*p2++ = *p1++) == 1) { }  return;
   }
   if (c!=' ') { error(Q); }
@@ -233,7 +231,7 @@ int getchr(void) {  char c;
   lastc = c&0177;  return(lastc);
 }
 // int getcopy(void) { if (addr1 > addr2) { return(EOF); }  getline_blk(*addr1++);  return(0); }
-int getfile(void) {  int c;  char *lp = linebuf, *fp = nextip;
+int getfile(void) {  int c;  char *lp = linebuf, *fp = nextip;   //*******************************fp = file pointer?
   do {
     if (--ninbuf < 0) {
       if ((ninbuf = (int)read(io, genbuf, LBSIZE)-1) < 0) {
@@ -299,7 +297,7 @@ void onhup(int n) {
 void onintr(int n) { signal(SIGINT, onintr);  putchr_('\n');  lastc = '\n';  error(Q);  }
 
 void print(void) {  unsigned int *a1 = addr1;  nonzero();
-  do {  if (listn) {  count = a1 - zero;  putd();  putchr_('\t');  }  puts_(getline_blk(*a1++));  } while (a1 <= addr2);
+  do {  if (listn) {  count = a1 - zero; putd();  putchr_('\t'); }  puts_(getline_blk(*a1++)); }  while (a1 <= addr2);
   dot = addr2;  listf = 0;  listn = 0;  pflag = 0;
 }
 void putchr_(int ac) {  char *lp = linp;  int c = ac;
@@ -319,7 +317,7 @@ void putchr_(int ac) {  char *lp = linp;  int c = ac;
   *lp++ = c;
   if (c == '\n' || lp >= &line[64]) {  linp = line;  write(oflag ? 2 : 1, line, lp - line);  return;  }  linp = lp;
 }
-void putd(void) {  int r = count % 10;  count /= 10;  if (count) { putd(); }  putchr_(r + '0');  } //******* putd() counts and prints the number of characters in the text file
+void putd(void) {  int r = count % 10;  count /= 10; if (count) { putd(); }  putchr_(r + '0');  } //******* putd() counts and prints the number of characters in the text file
 void putfile(void) {  unsigned int *a1;  char *fp, *lp;  int n, nib = BLKSIZE;  fp = genbuf;  a1 = addr1;
   do {
     lp = getline_blk(*a1++);
@@ -341,7 +339,7 @@ int putline(void) {  char *bp, *lp;  int nl;  unsigned int tl;  fchange = 1;  lp
   }
   nl = tline;  tline += (((lp - linebuf) + 03) >> 1) & 077776;  return(nl);
 }
-void puts_(char *sp) {  col = 0;  while (*sp) { putchr_(*sp++); }  putchr_('\n');  } //******* puts_() prints the grep text and puts newlines at the end of sentences
+void puts_(char *sp) {  col = 0;  while (*sp) { putchr_(*sp++); }  putchr_('\n');  } //******* puts_() prints the char* reference and puts a newline at the end of string
 void quit(int n) { if (vflag && fchange && dol!=zero) {  fchange = 0;  error(Q);  }  unlink(tfname); exit(0); }
 
 void reverse(unsigned int *a1, unsigned int *a2) {  int t;
