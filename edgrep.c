@@ -52,36 +52,7 @@ void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
     case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init();
                addr2 = zero;  caseread(c); continue;
     case 'z':  grepline();  continue;
-
-    case 'a':  /* add(0);  continue; */  // fallthrough
-    case 'c':  /* nonzero(); newline(); rdelete(addr1,addr2); append(gettty, addr1-1); continue; */  // fallthrough
-    case 'd':  /* nonzero();  newline();  rdelete(addr1,addr2);  continue; */  // fallthrough
-    case 'E':  /* fchange = 0;  c = 'e'; */  // fallthrough
-    case 'f':  /* setnoaddr();  filename(c);  puts_(savedfile);  continue; */  // fallthrough
-    case 'i':  /* add(-1);  continue;  */  // fallthrough
-    case 'j':  /* if (!given) { addr2++; }  newline();  join();  continue; */  // fallthrough
-    case 'k':  /* nonzero();  if ((c = getchr()) < 'a' || c > 'z') { error(Q); }  newline();
-                names[c-'a'] = *addr2 & ~01;  anymarks |= 01;  continue; */  // fallthrough
-    case 'l':  /* listf++; */  // fallthrough
-    case 'm':  /* move_(0);  continue; */  // fallthrough
-    case 'n':  /* listn++;  newline();  print();  continue;  */  // fallthrough
-    case 'r':  /* filename(c); */  // fallthrough
-    case 's':  /* nonzero();  substitute(globp!=0);  continue; */  // fallthrough
-    case 't':  /* move_(1);  continue;  */  // fallthrough
-    case 'u':  /* nonzero();  newline(); if ((*addr2&~01) != subnewa) { error(Q); }  *addr2 = subolda;
-                dot = addr2; continue; */  // fallthrough
-    case 'v':  /* global(0);  continue;  // falthrough
-    case 'W':  /* wrapp++;  case 'w': setwide();  squeeze(dol > zero);
-      if ((temp = getchr()) != 'q' && temp != 'Q') { peekc = temp;  temp = 0; } filename(c);
-      if (!wrapp || ((io = open(file, 1)) == -1) || lseek(io, 0L, 2) == -1) {
-        if ((io = creat(file, 0666)) < 0) { error(file); } }  wrapp = 0;
-      if (dol > zero) { putfile(); } exfile();  if (addr1 <= zero+1 && addr2 == dol) { fchange = 0; }
-                if (temp == 'Q') { fchange = 0; }  if (temp) { quit(0); } continue; */  // fallthrough
-    case '=':  /* setwide();  squeeze(0);  newline();  count = addr2 - zero;  putd();  putchr_('\n'); continue; */
-               // fallthrough
-    case '!':  /* callunix();  continue; */  // fallthrough
-    default:  // fallthrough
-    caseGrepError:  greperror(c);  continue;
+    caseGrepError: default:  greperror(c);  continue;
     }  error(Q);
   }
 }
