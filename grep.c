@@ -247,7 +247,7 @@ void global(int k) {  char *gp;  int c;  unsigned int *a1;  char globuf[GBSIZE];
   while ((c = getchr()) != '\n') {
     if (c == EOF) { error(Q); }
     if (c == '\\') {  c = getchr();  if (c != '\n') { *gp++ = '\\'; }  }
-    *gp++ = c;  if (gp >= &globuf[GBSIZE-2]) { error(Q); }
+    *gp++ = c;  if (gp >= &globuf[GBSIZE-2]) { error(Q); } //************stores user's input regexp into globuf ?
   }
   if (gp == globuf) { *gp++ = 'p'; }  *gp++ = '\n';  *gp++ = 0;
   for (a1 = zero; a1 <= dol; a1++) {  *a1 &= ~01;  if (a1>=addr1 && a1<=addr2 && execute(a1)==k) { *a1 |= 01; } }
