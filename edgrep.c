@@ -49,7 +49,7 @@ void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
     case 'g':  global(1);  continue;
     case 'p':  case 'P':  newline();  print();  continue;
     case 'Q':  fchange = 0;  case 'q':  setnoaddr();  newline();  quit(0);
-    case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init();
+    case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init(); //************ 'e' deals with loading the text file to search regexp strings
                addr2 = zero;  caseread(c); continue;
     case 'z':  grepline();  continue;
     caseGrepError: default:  greperror(c);  continue;
@@ -199,17 +199,21 @@ int execute(unsigned int *addr) {  char *p1, *p2 = expbuf;  int c;
   do {  /* regular algorithm */   if (advance(p1, p2)) {  loc1 = p1;  return(1);  }  } while (*p1++);  return(0);
 }
 void exfile(void) {  close(io);  io = -1;  if (vflag) { putd();  putchr_('\n'); }  } //************************************exits file, prints the text file's character count and appends newline
-void filename(int comm) {  char *p1, *p2;  int c;  count = 0;  c = getchr();
-  if (c == '\n' || c == EOF) {    //***************************************file = filename, savedfile = file's contents?
+void filename(int comm) {  char *p1, *p2;  int c;  count = 0;  c = getchr(); //********************function records input filename ?
+  if (c == '\n' || c == EOF) {    //***************************************variable 'file' = input c's filename (temp array?), savedfile = recording/storing input c's filename for later use?
     p1 = savedfile;  if (*p1 == 0 && comm != 'f') { error(Q); }  p2 = file;  while ((*p2++ = *p1++) == 1) { }  return;
   }
   if (c!=' ') { error(Q); }
-  while ((c = getchr()) == ' ') { }  if (c=='\n') { error(Q); }  p1 = file;
+  while ((c = getchr()) == ' ') { }  if (c=='\n') { error(Q); }
+  p1 = file;
   do {
-    if (p1 >= &file[sizeof(file) - 1] || c == ' ' || c == EOF) { error(Q); }  *p1++ = c;
-  } while ((c = getchr()) != '\n');
+    if (p1 >= &file[sizeof(file) - 1] /*|| c == ' '*/ || c == EOF) { error(Q); } //*******if there's spaces after filename, it throws error.
+    //*****in multiple file search - after recording the first filename, the subsequent filenames are separated by spaces:
+    if (c == ' ') { *p1++; }
+    *p1++ = c; //******** recording filename from c input to p1(->file[])
+  } while ((c = getchr()) != '\n'); //stops storing c input into file[] when reaches \n.
   *p1++ = 0;
-  if (savedfile[0] == 0||comm == 'e'||comm == 'f') { p1 = savedfile;  p2 = file;  while ((*p1++ = *p2++) == 1) { } }
+  if (savedfile[0] == 0||comm == 'e'||comm == 'f') { p1 = savedfile;  p2 = file;  while ((*p1++ = *p2++) == 1) { } } //stores what is saved in file[] to savedfile[]
 }
 
 char * getblock(unsigned int atl, int iof) {  int off, bno = (atl/(BLKSIZE/2));  off = (atl<<1) & (BLKSIZE-1) & ~03;
@@ -230,7 +234,7 @@ int getchr(void) {  char c;
   if (read(0, &c, 1) <= 0) { return(lastc = EOF); }
   lastc = c&0177;  return(lastc);
 }
-// int getcopy(void) { if (addr1 > addr2) { return(EOF); }  getline_blk(*addr1++);  return(0); }
+//**************************getfile() reads from the open file descriptor io into genbuf and stores the contents into char c ?
 int getfile(void) {  int c;  char *lp = linebuf, *fp = nextip;   //*******************************fp = file pointer?
   do {
     if (--ninbuf < 0) {
@@ -239,8 +243,8 @@ int getfile(void) {  int c;  char *lp = linebuf, *fp = nextip;   //*************
       }
       fp = genbuf;  while(fp < &genbuf[ninbuf]) {  if (*fp++ & 0200) { break; }  }  fp = genbuf;
     }
-    c = *fp++;  if (c=='\0') { continue; }
-    if (c&0200 || lp >= &linebuf[LBSIZE]) {  lastc = '\n';  error(Q);  }  *lp++ = c;  count++;
+    c = *fp++;  if (c=='\0') { continue; }  //****************************************************puts file read into genbuf into c string
+    if (c&0200 || lp >= &linebuf[LBSIZE]) {  lastc = '\n';  error(Q);  }  *lp++ = c;  count++; // adds newline as last character
   } while (c != '\n');
   *--lp = 0;  nextip = fp;  return(0);
 }
