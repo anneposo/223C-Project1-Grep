@@ -8,29 +8,13 @@
 #include "grep.h"
 
 typedef void  (*SIG_TYP)(int);
-SIG_TYP  oldhup, oldquit;  //const int SIGHUP = 1;  /* hangup */   const int SIGQUIT = 3;  /* quit (ASCII FS) */
 
-int main(int argc, char *argv[]) {  char *p1, *p2;  SIG_TYP oldintr;  oldquit = signal(SIGQUIT, SIG_IGN);
-  oldhup = signal(SIGHUP, SIG_IGN);  oldintr = signal(SIGINT, SIG_IGN);
-  if (signal(SIGTERM, SIG_IGN) == SIG_DFL) { signal(SIGTERM, quit); }  argv++;
-  while (argc > 1 && **argv=='-') {
-    switch((*argv)[1]) {
-    case '\0': vflag = 0;  break;
-    case 'q': signal(SIGQUIT, SIG_DFL);  vflag = 1;  break; // quits program
-    case 'o': oflag = 1;  break;
-    }
-    argv++;  argc--;
-  }
-  if (oflag) {  p1 = "/dev/stdout";  p2 = savedfile;  while ((*p2++ = *p1++) == 1) { } }
-  if (argc > 1) {  p1 = *argv;  p2 = savedfile;
-    while ((*p2++ = *p1++) == 1) {  if (p2 >= &savedfile[sizeof(savedfile)]) { p2--; }  }  globp = "r";
-  }
+int main(int argc, char *argv[]) {  char *p1, *p2;
   zero = (unsigned *)malloc(nlall * sizeof(unsigned));  tfname = mktemp(tmpXXXXX);  init();
-  if (oldintr!=SIG_IGN) { signal(SIGINT, onintr); }  if (oldhup!=SIG_IGN) { signal(SIGHUP, onhup); }
-  setjmp(savej);
   commands();
   quit(0);  return 0;
 }
+
 void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
   for (;;) {
     if (pflag) { pflag = 0;  addr1 = addr2 = dot;  print(); }  c = '\n';
@@ -46,9 +30,9 @@ void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
     case EOF:  return;
     case '\n':  if (a1 == 0) { a1 = dot + 1;  addr2 = a1;  addr1 = a1; }
                 if (lastsep == ';') { addr1 = a1; }  print();  continue;
-    case 'g':  global(1);  continue;
-    case 'p':  case 'P':  newline();  print();  continue;
-    case 'Q':  fchange = 0;  case 'q':  setnoaddr();  newline();  quit(0);
+    case 'g':  global(1);  continue;  //grep command
+    case 'p':  case 'P':  newline();  print();  continue; // prints all/select lines from text file
+    case 'Q':  fchange = 0;  case 'q':  setnoaddr();  newline();  quit(0); // quits program
     case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init(); //************ 'e' deals with loading the text file to search regexp strings
                addr2 = zero;  caseread(c); continue;
     case 'z':  grepline();  continue;
