@@ -25,6 +25,7 @@ int  vflag  = 1, oflag, listf, listn, col, tfile  = -1, tline, iblock  = -1, obl
 int  names[26], anymarks, nbra, subnewa, subolda, fchange, wrapp, bpagesize = 20;
 unsigned nlall = 128;  unsigned int  *addr1, *addr2, *dot, *dol, *zero;
 
+FILE *fileptr; // for opening/closing files with fopen() and fclose()
 long  count;
 char  Q[] = "", T[] = "TMP";
 char savedfile[FNSIZE]; // string of file[]'s contents?
@@ -41,7 +42,7 @@ void blkio(int b, char *buf, long (*iofcn)(int, void*, unsigned long));
 int cclass(char *set, int c, int af);  void compile(int eof);
 void error(char *s);  int execute(unsigned int *addr);
 void exfile(void); // closes file, calls putd (get/print character count) and adds a newline
-void filename(int comm);  char *getblock(unsigned int atl, int iof); int getchr(void);
+void filename(const char* comm);  char *getblock(unsigned int atl, int iof); int getchr(void);
 int getcopy(void);
 int getfile(void);
 char *getline_blk(unsigned int tl);  int getnum(void);
@@ -64,4 +65,6 @@ void greperror(char);  void grepline(void);
 void cerror();  // created function to remove goto statements
 void defchar(int, char*); // created function to remove goto statements
 int star(char *lp, char* ep, char* curlp); // created function to remove goto statements
-void caseread(int c); // created function to remove goto statements
+void caseread(const char* c); // created function to remove goto statements
+void readfile(const char* file);
+void search_string(const char* regexp);
