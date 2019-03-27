@@ -88,34 +88,33 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
   nbra = 0;
   if (c=='^') { c = fgetc(fileptr);  *ep++ = CCIRC; }  peekc = c;  lastep = 0;
   for (;;) {
-    if (ep >= &expbuf[ESIZE]) { goto cerror; }  c = fgetc(fileptr);  if (c == '\n') { peekc = c;  c = eof; }
-    if (c==eof) { if (bracketp != bracket) { goto cerror; }  *ep++ = CEOF;  return;  }
+    if (ep >= &expbuf[ESIZE]) { cerror(); }  c = fgetc(fileptr);  if (c == '\n') { peekc = c;  c = eof; }
+    if (c==eof) { if (bracketp != bracket) { cerror(); }  *ep++ = CEOF;  return;  }
     if (c!='*') { lastep = ep; }
 
     switch (c) {
       case '\\':
         if ((c = fgetc(fileptr))=='(') {
-          if (nbra >= NBRA) { goto cerror; }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
+          if (nbra >= NBRA) { cerror(); }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
         }
-        if (c == ')') {  if (bracketp <= bracket) { goto cerror; }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
+        if (c == ')') {  if (bracketp <= bracket) { cerror(); }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
         if (c>='1' && c<'1'+NBRA) { *ep++ = CBACK;  *ep++ = c-'1';  continue; }
-        *ep++ = CCHR;  if (c=='\n') { goto cerror; }  *ep++ = c;  continue;
+        *ep++ = CCHR;  if (c=='\n') { cerror(); }  *ep++ = c;  continue;
       case '.': *ep++ = CDOT;  continue;
-      case '\n':  goto cerror;
-      case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { goto defchar; }  *lastep |= STAR; continue;
-      case '$':  if ((peekc=fgetc(fileptr)) != eof && peekc!='\n') { goto defchar; }  *ep++ = CDOL;  continue;
+      case '\n':  cerror();
+      case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { defchar(c, ep); }  *lastep |= STAR; continue;
+      case '$':  if ((peekc=fgetc(fileptr)) != eof && peekc!='\n') { defchar(c, ep); }  *ep++ = CDOL;  continue;
       case '[':  *ep++ = CCL;  *ep++ = 0;  cclcnt = 1;  if ((c=fgetc(fileptr)) == '^') {  c = fgetc(fileptr);  ep[-2] = NCCL; }
         do {
-          if (c=='\n') { goto cerror; }  if (c=='-' && ep[-1]!=0) {
+          if (c=='\n') { cerror(); }  if (c=='-' && ep[-1]!=0) {
             if ((c=fgetc(fileptr))==']') { *ep++ = '-';  cclcnt++;  break; }
-            while (ep[-1] < c) {  *ep = ep[-1] + 1;  ep++;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { goto cerror; } }
+            while (ep[-1] < c) {  *ep = ep[-1] + 1;  ep++;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { cerror(); } }
           }
-          *ep++ = c;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { goto cerror; }
+          *ep++ = c;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { cerror(); }
         } while ((c = fgetc(fileptr)) != ']');
         lastep[1] = cclcnt;  continue;
-      defchar:  default:  *ep++ = CCHR;  *ep++ = c;
     }
-  }  cerror:  expbuf[0] = 0;  nbra = 0;  error(Q);
+  }
 }
 
 void global(const char* regexp) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
