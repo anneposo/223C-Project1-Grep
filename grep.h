@@ -46,7 +46,7 @@ void filename(const char* comm);  char *getblock(unsigned int atl, int iof); int
 int getcopy(void);
 int getfile(void);
 char *getline_blk(unsigned int tl);  int getnum(void);
-void global(int k);  //where grep command functions
+void global(const char *regexp);  //where grep command functions
 void init(void);
 void newline(void);  void nonzero(void);  void onhup(int n);
 void onintr(int n);  char *place(char *sp, char *l1, char *l2);

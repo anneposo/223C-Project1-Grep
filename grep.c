@@ -76,7 +76,7 @@ void filename(const char* comm) {
 }
 
 void search_string(const char* regexp){
-  global(1); newline(); print();
+  global(regexp); //newline(); print();
 }
 
 void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBRA], *bracketp = bracket;
@@ -118,7 +118,8 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
   }  cerror:  expbuf[0] = 0;  nbra = 0;  error(Q);
 }
 
-void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
+void global(const char* regexp) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
+
   if (globp) { error(Q); }  setwide();  squeeze(dol > zero);
 
   fileptr = fopen((const char*)file, "r");
@@ -126,23 +127,35 @@ void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
   compile(c);
   gp = globuf;
 
-  while ((c = fgetc(fileptr)) != '\n') {
-    if (c == EOF) { error(Q); }
-    if (c == '\\') {  c = fgetc(fileptr);  if (c != '\n') { *gp++ = '\\'; }  }
-    *gp++ = c;  if (gp >= &globuf[GBSIZE-2]) { error(Q); }
-  }
-  if (gp == globuf) { *gp++ = 'p'; }  *gp++ = '\n';  *gp++ = 0;
+   while ((c = fgetc(fileptr)) != '\n') {
+     if (c == EOF) { error(Q); }
+     if (c == '\\') {  c = fgetc(fileptr);  if (c != '\n') { *gp++ = '\\'; }  }
+     *gp++ = c;  if (gp >= &globuf[GBSIZE-2]) { error(Q); }
+   }
+   if (gp == globuf) { *gp++ = 'p'; }  *gp++ = '\n';  *gp++ = 0;
 
-  for (a1 = zero; a1 <= dol; a1++) {
-    *a1 &= ~01;
+   while (fgets(gp, GBSIZE, fileptr)) {
+     if (strstr(gp, regexp)) {
+       printf("%s", gp);
+     }
+   }
+
+/*
+  // for (a1 = zero; a1 <= dol; a1++) {
+  //   *a1 &= ~01;
     if (a1>=addr1 && a1<=addr2 && execute(a1)==k) {
       *a1 |= 01; }
-  }
+//  }
 // file grep doesn't delete
 //  if (globuf[0] == 'd' && globuf[1] == '\n' && globuf[2] == '\0') {  gdelete();  return; }  // special: g/.../d avoid n^2
   for (a1 = zero; a1 <= dol; a1++) {
-    if (*a1 & 01) {  *a1 &= ~01;  dot = a1;  globp = globuf;  /*commands();*/  a1 = zero; }
-  }
+    if (*a1 & 01) {
+      *a1 &= ~01;
+      dot = a1;
+      globp = globuf;  /*commands();
+      a1 = zero;
+    }
+  }*/
   fclose(fileptr);
 }
 
