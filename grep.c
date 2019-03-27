@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {  //char *p1, *p2;
   search_string(argv[1]);
 
 
-  //zero = (unsigned *)malloc(nlall * sizeof(unsigned));  tfname = mkdtemp(tmpXXXXX);  init();
+  zero = (unsigned *)malloc(nlall * sizeof(unsigned));  tfname = mkdtemp(tmpXXXXX);  init();
   //commands();
   quit(0);
   return 0;
@@ -60,7 +60,7 @@ void readfile(const char* textfile){
   filename(textfile);  init();
   addr2 = zero;
   //caseread(textfile);
-  if ((fileptr = fopen((const char*)file, "r")) == NULL) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
+  if ((io = open((const char*)file, 0)) < 0) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
          ninbuf = 0; //c = fgetc(fileptr); c = zero != dol;
   append(getfile, addr2);
   exfile();
@@ -68,7 +68,7 @@ void readfile(const char* textfile){
 }
 
 //************************************exfile closes file, prints the text file's character count and appends newline
-void exfile(void) {  fclose(fileptr); if (vflag) { putd();  putchr_('\n'); } }
+void exfile(void) {  close(io);  io = -1; if (vflag) { putd();  putchr_('\n'); } }
 
 void filename(const char* comm) {
   strcpy(savedfile, comm);
@@ -118,10 +118,10 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
   }  cerror:  expbuf[0] = 0;  nbra = 0;  error(Q);
 }
 
-void global(int k) {  char *gp;  int c;  unsigned int *a1;  char globuf[GBSIZE];
+void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
   if (globp) { error(Q); }  setwide();  squeeze(dol > zero);
 
-  //FILE* fileptr = fopen((const char*)file, "r");
+  fileptr = fopen((const char*)file, "r");
   if ((c = fgetc(fileptr)) == '\n') { error(Q); }
   compile(c);
   gp = globuf;
@@ -132,13 +132,18 @@ void global(int k) {  char *gp;  int c;  unsigned int *a1;  char globuf[GBSIZE];
     *gp++ = c;  if (gp >= &globuf[GBSIZE-2]) { error(Q); }
   }
   if (gp == globuf) { *gp++ = 'p'; }  *gp++ = '\n';  *gp++ = 0;
-  for (a1 = zero; a1 <= dol; a1++) {  *a1 &= ~01;  if (a1>=addr1 && a1<=addr2 && execute(a1)==k) { *a1 |= 01; } }
+
+  for (a1 = zero; a1 <= dol; a1++) {
+    *a1 &= ~01;
+    if (a1>=addr1 && a1<=addr2 && execute(a1)==k) {
+      *a1 |= 01; }
+  }
 // file grep doesn't delete
 //  if (globuf[0] == 'd' && globuf[1] == '\n' && globuf[2] == '\0') {  gdelete();  return; }  // special: g/.../d avoid n^2
   for (a1 = zero; a1 <= dol; a1++) {
     if (*a1 & 01) {  *a1 &= ~01;  dot = a1;  globp = globuf;  /*commands();*/  a1 = zero; }
   }
-  //fclose(fileptr);
+  fclose(fileptr);
 }
 
 unsigned int* address(void) {  int sign;  unsigned int *a, *b;  int opcnt, nextopand;  int c;
@@ -198,19 +203,19 @@ int advance(char *lp, char *ep) {  char *curlp;  int i;
 // created function star to remove goto statements
 int star(char *lp, char* ep, char* curlp) { do {  lp--;  if (advance(lp, ep)) { return(1); } } while (lp > curlp);  return(0); }
 
-int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot;  int nline, tl;  nline = 0;  dot = a;
+int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot, *tl;  int nline;  nline = 0;  dot = a;
   while ((*f)() == 0) {
     if ((dol-zero)+1 >= nlall) {  unsigned *ozero = zero;  nlall += 1024;
       if ((zero = (unsigned *)realloc((char *)zero, nlall*sizeof(unsigned)))==NULL) {  error("MEM?");  onhup(0);  }
       dot += zero - ozero;  dol += zero - ozero;
     }
-    tl = putline();
+    *tl = putline();
     nline++;
     a1 = ++dol;
     a2 = a1+1;
     rdot = ++dot;
     while (a1 > rdot) { *--a2 = *--a1; }
-    *rdot = tl;
+    rdot = tl;
   }
   return(nline);
 }
