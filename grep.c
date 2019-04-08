@@ -150,7 +150,7 @@ void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
       *a1 &= ~01;
       dot = a1;
       globp = globuf;
-      commands();
+      print_genbuf();
       a1 = zero;
       break;
     }
