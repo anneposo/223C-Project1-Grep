@@ -42,7 +42,7 @@ void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
     case '\n':  if (a1 == 0) { a1 = dot + 1;  addr2 = a1;  addr1 = a1; }
                 if (lastsep == ';') { addr1 = a1; }  print();  continue;
     case 'g':  global(1);  continue;  //grep command
-    case 'p':  case 'P':  newline();  print();  continue; // prints all/select lines from text file
+    case 'p':  case 'P':  print_genbuf();  continue; // prints all/select lines from text file
     case 'Q':  fchange = 0;  case 'q':  setnoaddr();  newline();  quit(0); // quits program
     //case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init(); //************ 'e' deals with loading the text file to search regexp strings
           //     addr2 = zero;  caseread(c); continue;
@@ -76,7 +76,14 @@ void filename(const char* comm) {
 }
 
 void search_string(const char* regexp){
-  global(1); //newline(); print();
+  regexp_buf_init(regexp);
+  char buf[GBSIZE];
+  snprintf(buf, sizeof(buf), "/%s\n", regexp);
+  grepline();
+  printf("g%s", buf);
+  const char* p = buf + strlen(buf) - 1;
+  while (p >= buf) { ungetch_(*p--); }
+  global(1);
 }
 
 void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBRA], *bracketp = bracket;
@@ -120,9 +127,9 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
 void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
 
   if (globp) { error(Q); }  setwide();  squeeze(dol > zero);
-
   if ((c = getchr()) == '\n') { error(Q); }
   compile(c);
+  regexp_index = 0;
   gp = globuf;
 
    while ((c = getchr()) != '\n') {
@@ -132,7 +139,7 @@ void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
    }
    if (gp == globuf) { *gp++ = 'p'; }  *gp++ = '\n';  *gp++ = 0;
 
-
+   // print_genbuf();
    for (a1 = zero; a1 <= dol; a1++) {
      *a1 &= ~01;
     if (a1>=addr1 && a1<=addr2 && execute(a1)==k) {
@@ -145,9 +152,53 @@ void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
       globp = globuf;
       commands();
       a1 = zero;
+      break;
     }
   }
 }
+
+void print_genbuf(){
+  genp = genbuf;
+  char tempbuf[BUFSIZE];
+  char* temp;
+  char linebuf_[LBSIZE];
+  char* lbufp;
+  reverse_(regexp_buf);
+  rbufp = regexp_buf;
+  ++rbufp;
+  for (temp = tempbuf; *rbufp != '\n'; rbufp++, temp++){
+    *temp = *rbufp;
+  }
+  while (*genp != '\0') {
+    for (lbufp  = linebuf_; *genp != '\n'; genp++, lbufp++){
+      *lbufp = *genp;
+    }
+    if(strstr(linebuf_, tempbuf) != NULL) {
+      printf("%s\n", linebuf_);
+    }
+    memset(linebuf_, '\0', sizeof(linebuf_));
+    genp++;
+  }
+  // for (genp = genbuf; *genp != '\0'; genp++){
+  //   while(*genp != '\n') {
+  //     *lbufp = *genp;
+  //   }
+
+  // while(*genp) {
+	// 	printf("%d", *genp);
+	// }
+}
+
+void reverse_(char* s){
+  char* start = s;
+  char* end = start + strlen(start) - 1;
+  while (end > start) {
+    char t = *end;
+    *end-- = *start;
+    *start++ = t;
+  }
+}
+
 
 unsigned int* address(void) {  int sign;  unsigned int *a, *b;  int opcnt, nextopand;  int c;
   nextopand = -1;  sign = 1;  opcnt = 0;  a = dot;

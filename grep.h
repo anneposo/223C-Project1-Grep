@@ -38,6 +38,7 @@ char savedfile[FNSIZE]; // string of file[]'s contents?
 char file[FNSIZE]; // string of file name i.e. "rings.txt"
 char linebuf[LBSIZE], rhsbuf[LBSIZE/2], expbuf[ESIZE+4];
 char  genbuf[LBSIZE], *nextip, *linebp, *globp, *mktemp(char *), tmpXXXXX[50] = "/tmp/eXXXXX";
+char *genp; // pointer for genbuf
 char  *tfname, *loc1, *loc2, ibuff[BLKSIZE], obuff[BLKSIZE], WRERR[]  = "WRITE ERROR", *braslist[NBRA], *braelist[NBRA];
 char  line[70];  char  *linp  = line;
 void commands(void); //provides switch case of commands for grep/ed
@@ -77,3 +78,5 @@ void search_string(const char* regexp);
 void regexp_buf_init(const char* regexp);
 int getchr_();
 void ungetch_(int c);
+void print_genbuf();
+void reverse_(char* s);
