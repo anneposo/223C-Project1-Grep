@@ -14,6 +14,7 @@
 #define CKET 12
 #define CBACK 14
 #define STAR 01
+#define BUFSIZE 100
 
 const int NBLK = 2047;
 const int KSIZE = 9;
@@ -26,6 +27,11 @@ int  names[26], anymarks, nbra, subnewa, subolda, fchange, wrapp, bpagesize = 20
 unsigned nlall = 128;  unsigned int  *addr1, *addr2, *dot, *dol, *zero;
 
 FILE *fileptr; // for opening/closing files with fopen() and fclose()
+
+char regexp_buf[BUFSIZE];  // buffer containing input regexp (string to search for)
+char* rbufp;
+int regexp_index = 0; //index of regexp buffer
+
 long  count;
 char  Q[] = "", T[] = "TMP";
 char savedfile[FNSIZE]; // string of file[]'s contents?
@@ -46,7 +52,7 @@ void filename(const char* comm);  char *getblock(unsigned int atl, int iof); int
 int getcopy(void);
 int getfile(void);
 char *getline_blk(unsigned int tl);  int getnum(void);
-void global(const char *regexp);  //where grep command functions
+void global(int k);  //where grep command functions
 void init(void);
 void newline(void);  void nonzero(void);  void onhup(int n);
 void onintr(int n);  char *place(char *sp, char *l1, char *l2);
@@ -68,3 +74,6 @@ int star(char *lp, char* ep, char* curlp); // created function to remove goto st
 void caseread(const char* c); // created function to remove goto statements
 void readfile(const char* file);
 void search_string(const char* regexp);
+void regexp_buf_init(const char* regexp);
+int getchr_();
+void ungetch_(int c);

@@ -9,62 +9,62 @@
 
 typedef void  (*SIG_TYP)(int);
 
+#define BUFSIZE 100
 
 int main(int argc, char *argv[]) {  //char *p1, *p2;
-  if (argc < 3) { printf("Missing a regexp or file to be searched...\n"); return 0; } //checks if minimum requirements are input
-
+  if (argc != 3) { printf("Missing a regexp or file to be searched...\n"); return 0; } //checks if minimum requirements are input
+  zero = (unsigned *)malloc(nlall * sizeof(unsigned));  tfname = mkdtemp(tmpXXXXX);  init();
   readfile(argv[2]);
   search_string(argv[1]);
-
-
-  zero = (unsigned *)malloc(nlall * sizeof(unsigned));  tfname = mkdtemp(tmpXXXXX);  init();
-  //commands();
-  quit(0);
-  return 0;
+  printf("\nquitting...\n");
+  exit(1);
 }
 
-// void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
-//   for (;;) {
-//     if (pflag) { pflag = 0;  addr1 = addr2 = dot;  print(); }  c = '\n';
-//     for (addr1 = 0;;) {
-//       lastsep = c;  a1 = address();  c = getchr();
-//       if (c != ',' && c != ';') { break; }  if (lastsep==',') { error(Q); }
-//       if (a1==0) {  a1 = zero+1;  if (a1 > dol) { a1--; }  }  addr1 = a1;  if (c == ';') { dot = a1; }
-//     }
-//     if (lastsep != '\n' && a1 == 0) { a1 = dol; }
-//     if ((addr2 = a1)==0) { given = 0;  addr2 = dot;  } else { given = 1; }
-//     if (addr1==0) { addr1 = addr2; }
-//     switch(c) {
-//     case EOF:  return;
-//     case '\n':  if (a1 == 0) { a1 = dot + 1;  addr2 = a1;  addr1 = a1; }
-//                 if (lastsep == ';') { addr1 = a1; }  print();  continue;
-//     case 'g':  global(1);  continue;  //grep command
-//     case 'p':  case 'P':  newline();  print();  continue; // prints all/select lines from text file
-//     case 'Q':  fchange = 0;  case 'q':  setnoaddr();  newline();  quit(0); // quits program
-//     //case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init(); //************ 'e' deals with loading the text file to search regexp strings
-//           //     addr2 = zero;  caseread(c); continue;
-//     case 'z':  grepline();  continue;
-//     caseGrepError: default:  greperror(c);  continue;
-//     }  error(Q);
-//   }
-// }
-// created function caseread to remove goto statements
-// void caseread(const char* c) {
-//   if ((io = open((const char*)file, 0)) < 0) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
-//          ninbuf = 0; // c = zero != dol;
-//   append(getfile, addr2); exfile(); /* fchange = c; */}
+void regexp_buf_init(const char* regexp){
+   strcpy(regexp_buf, regexp);
+	 //strcat(regexp_buf, "\n");
+   //rbufp = regexp_buf;
+}
+
+void commands(void) {  unsigned int *a1;  int c, temp;  char lastsep;
+  for (;;) {
+    if (pflag) { pflag = 0;  addr1 = addr2 = dot;  print(); }  c = '\n';
+    for (addr1 = 0;;) {
+      lastsep = c;  a1 = address();  c = getchr();
+      if (c != ',' && c != ';') { break; }  if (lastsep==',') { error(Q); }
+      if (a1==0) {  a1 = zero+1;  if (a1 > dol) { a1--; }  }  addr1 = a1;  if (c == ';') { dot = a1; }
+    }
+    if (lastsep != '\n' && a1 == 0) { a1 = dol; }
+    if ((addr2 = a1)==0) { given = 0;  addr2 = dot;  } else { given = 1; }
+    if (addr1==0) { addr1 = addr2; }
+    switch(c) {
+    case EOF:  return;
+    case '\n':  if (a1 == 0) { a1 = dot + 1;  addr2 = a1;  addr1 = a1; }
+                if (lastsep == ';') { addr1 = a1; }  print();  continue;
+    case 'g':  global(1);  continue;  //grep command
+    case 'p':  case 'P':  newline();  print();  continue; // prints all/select lines from text file
+    case 'Q':  fchange = 0;  case 'q':  setnoaddr();  newline();  quit(0); // quits program
+    //case 'e':  setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); } filename(c);  init(); //************ 'e' deals with loading the text file to search regexp strings
+          //     addr2 = zero;  caseread(c); continue;
+    case 'z':  grepline();  continue;
+    caseGrepError: default:  greperror(c);  continue;
+    }  error(Q);
+  }
+}
+//created function caseread to remove goto statements
+void caseread(const char* c) {
+  if ((io = open((const char*)file, 0)) < 0) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
+         ninbuf = 0; // c = zero != dol;
+  append(getfile, addr2); exfile(); /* fchange = c; */}
 
 void readfile(const char* textfile){
-
   setnoaddr(); if (vflag && fchange) { fchange = 0;  error(Q); }
   filename(textfile);  init();
   addr2 = zero;
-  //caseread(textfile);
   if ((io = open((const char*)file, 0)) < 0) { lastc = '\n';  error(file); }  setwide();  squeeze(0);
-         ninbuf = 0; //c = fgetc(fileptr); c = zero != dol;
+         ninbuf = 0;
   append(getfile, addr2);
   exfile();
-  //fchange = c;
 }
 
 //************************************exfile closes file, prints the text file's character count and appends newline
@@ -76,25 +76,25 @@ void filename(const char* comm) {
 }
 
 void search_string(const char* regexp){
-  global(regexp); //newline(); print();
+  global(1); //newline(); print();
 }
 
 void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBRA], *bracketp = bracket;
   //FILE* fileptr_;
 
   //FILE* fileptr = fopen((const char*)file, "r");
-  if ((c = fgetc(fileptr)) == '\n') { peekc = c;  c = eof; }
+  if ((c = getchr()) == '\n') { peekc = c;  c = eof; }
   if (c == eof) {  if (*ep==0) { error(Q); }  return; }
   nbra = 0;
-  if (c=='^') { c = fgetc(fileptr);  *ep++ = CCIRC; }  peekc = c;  lastep = 0;
+  if (c=='^') { c = getchr();  *ep++ = CCIRC; }  peekc = c;  lastep = 0;
   for (;;) {
-    if (ep >= &expbuf[ESIZE]) { cerror(); }  c = fgetc(fileptr);  if (c == '\n') { peekc = c;  c = eof; }
+    if (ep >= &expbuf[ESIZE]) { cerror(); }  c = getchr();  if (c == '\n') { peekc = c;  c = eof; }
     if (c==eof) { if (bracketp != bracket) { cerror(); }  *ep++ = CEOF;  return;  }
     if (c!='*') { lastep = ep; }
 
     switch (c) {
       case '\\':
-        if ((c = fgetc(fileptr))=='(') {
+        if ((c = getchr())=='(') {
           if (nbra >= NBRA) { cerror(); }  *bracketp++ = nbra;  *ep++ = CBRA;  *ep++ = nbra++;  continue;
         }
         if (c == ')') {  if (bracketp <= bracket) { cerror(); }  *ep++ = CKET;  *ep++ = *--bracketp;  continue; }
@@ -103,59 +103,50 @@ void compile(int eof) {  int c, cclcnt;  char *ep = expbuf, *lastep, bracket[NBR
       case '.': *ep++ = CDOT;  continue;
       case '\n':  cerror();
       case '*':  if (lastep==0 || *lastep==CBRA || *lastep==CKET) { defchar(c, ep); }  *lastep |= STAR; continue;
-      case '$':  if ((peekc=fgetc(fileptr)) != eof && peekc!='\n') { defchar(c, ep); }  *ep++ = CDOL;  continue;
-      case '[':  *ep++ = CCL;  *ep++ = 0;  cclcnt = 1;  if ((c=fgetc(fileptr)) == '^') {  c = fgetc(fileptr);  ep[-2] = NCCL; }
+      case '$':  if ((peekc=getchr()) != eof && peekc!='\n') { defchar(c, ep); }  *ep++ = CDOL;  continue;
+      case '[':  *ep++ = CCL;  *ep++ = 0;  cclcnt = 1;  if ((c=getchr()) == '^') {  c = getchr();  ep[-2] = NCCL; }
         do {
           if (c=='\n') { cerror(); }  if (c=='-' && ep[-1]!=0) {
-            if ((c=fgetc(fileptr))==']') { *ep++ = '-';  cclcnt++;  break; }
+            if ((c=getchr())==']') { *ep++ = '-';  cclcnt++;  break; }
             while (ep[-1] < c) {  *ep = ep[-1] + 1;  ep++;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { cerror(); } }
           }
           *ep++ = c;  cclcnt++;  if (ep >= &expbuf[ESIZE]) { cerror(); }
-        } while ((c = fgetc(fileptr)) != ']');
+        } while ((c = getchr()) != ']');
         lastep[1] = cclcnt;  continue;
     }
   }
 }
 
-void global(const char* regexp) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
+void global(int k) {  char *gp;  int c;  unsigned int *a1; char globuf[GBSIZE];
 
   if (globp) { error(Q); }  setwide();  squeeze(dol > zero);
 
-  fileptr = fopen((const char*)file, "r");
-  if ((c = fgetc(fileptr)) == '\n') { error(Q); }
+  if ((c = getchr()) == '\n') { error(Q); }
   compile(c);
   gp = globuf;
 
-   while ((c = fgetc(fileptr)) != '\n') {
+   while ((c = getchr()) != '\n') {
      if (c == EOF) { error(Q); }
-     if (c == '\\') {  c = fgetc(fileptr);  if (c != '\n') { *gp++ = '\\'; }  }
+     if (c == '\\') {  c = getchr();  if (c != '\n') { *gp++ = '\\'; }  }
      *gp++ = c;  if (gp >= &globuf[GBSIZE-2]) { error(Q); }
    }
    if (gp == globuf) { *gp++ = 'p'; }  *gp++ = '\n';  *gp++ = 0;
 
-   while (fgets(gp, GBSIZE, fileptr)) {
-     if (strstr(gp, regexp)) {
-       printf("%s", gp);
-     }
-   }
 
-/*
-  // for (a1 = zero; a1 <= dol; a1++) {
-  //   *a1 &= ~01;
+   for (a1 = zero; a1 <= dol; a1++) {
+     *a1 &= ~01;
     if (a1>=addr1 && a1<=addr2 && execute(a1)==k) {
       *a1 |= 01; }
-//  }
-// file grep doesn't delete
-//  if (globuf[0] == 'd' && globuf[1] == '\n' && globuf[2] == '\0') {  gdelete();  return; }  // special: g/.../d avoid n^2
+    }
   for (a1 = zero; a1 <= dol; a1++) {
     if (*a1 & 01) {
       *a1 &= ~01;
       dot = a1;
-      globp = globuf;  /*commands();
+      globp = globuf;
+      commands();
       a1 = zero;
     }
-  }*/
-  fclose(fileptr);
+  }
 }
 
 unsigned int* address(void) {  int sign;  unsigned int *a, *b;  int opcnt, nextopand;  int c;
@@ -283,9 +274,27 @@ char inputbuf[GBSIZE];
 int getchr(void) {  char c;
   if ((lastc=peekc)) {  peekc = 0;  return(lastc); }
   if (globp) {  if ((lastc = *globp++) != 0) { return(lastc); }  globp = 0;  return(EOF);  }
-  if (read(0, &c, 1) <= 0) { return(lastc = EOF); }
-  lastc = c&0177;  return(lastc);
+  if ((c = getchr_()) <= 0) { return(lastc = EOF); }
 }
+
+int getchr_() {
+  char c = (regexp_index > 0) ? regexp_buf[--regexp_index] : getchar();
+  lastc = c&0177;
+  // if (lastc == '\n') {
+  //   printf("getch(): newline\n");
+  // } else { printf("getch(): %c\n", lastc); }
+  //return regexp_buf[regexp_index++];
+  //rbufp = regexp_buf + regexp_index;
+  //return *rbufp;
+  return lastc;
+}
+
+void ungetch_(int c) {
+  if (regexp_index >= BUFSIZE) {
+    printf("ungetch: overflow\n");
+  } else { regexp_buf[regexp_index++] = c; }
+}
+
 //**************************getfile() reads from the open file descriptor io into genbuf and stores the contents into char c ?
 int getfile(void) {  int c;  char *lp = linebuf, *fp = nextip;   //*******************************fp = file pointer?
   do {
