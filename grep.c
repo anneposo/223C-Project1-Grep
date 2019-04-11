@@ -232,7 +232,11 @@ int advance(char *lp, char *ep) {  char *curlp;  int i;
 }
 // created function star to remove goto statements
 int star(char *lp, char* ep, char* curlp) {
-  do {  lp--;  if (advance(lp, ep)) { return(1); } } while (lp > curlp);  return(0); }
+  do {  lp--;
+    if (advance(lp, ep)) { return(1); }
+  } while (lp > curlp);
+  return(0);
+}
 
 int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot, *tl;  int nline;  nline = 0;  dot = a;
   while ((*f)() == 0) {
@@ -267,10 +271,8 @@ int cclass(char *set, int c, int af) {
   while (--n) { if (*set++ == c) { return(af); } }
   return(!af);
 }
-// created function defchar to remove goto statements
-void defchar(int c, char *ep) { *ep++ = CCHR;  *ep++ = c; }
-// created function cerror to remove goto statements
-void cerror(){  expbuf[0] = 0;  nbra = 0;  error(Q); }
+void defchar(int c, char *ep) { *ep++ = CCHR;  *ep++ = c; } // created function defchar to remove goto statements
+void cerror(){  expbuf[0] = 0;  nbra = 0;  error(Q); } // created function cerror to remove goto statements
 
 void error(char *s) {
   int c;  wrapp = 0;  listf = 0;  listn = 0; count = 0; pflag = 0;
@@ -338,14 +340,11 @@ int getchr_() {
   lastc = c&0177;
   return lastc;
 }
-
 void ungetch_(int c) {
   if (regexp_index >= BUFSIZE) {
     printf("ungetch: overflow\n");
   } else { regexp_buf[regexp_index++] = c; }
 }
-
-//**************************getfile() reads from the open file descriptor io into genbuf and stores the contents into char c ?
 int getfile(void) {
   int c;
   char *lp = linebuf, *fp = nextip;   //*******************************fp = file pointer?
@@ -406,16 +405,6 @@ void init(void) {  int *markp;
   dot = dol = zero;
   memset(inputbuf, 0, sizeof(inputbuf));
 }
-
-void newline(void) {  int c;
-  if ((c = getchr()) == '\n' || c == EOF) { return; }
-  if (c == 'p' || c == 'l' || c == 'n') {  pflag++;
-    if (c == 'l') { listf++;  }
-    else if (c == 'n') { listn++; }
-    if ((c = getchr()) == '\n') { return; }
-  }  //error(Q);
-}
-
 void nonzero(void) { squeeze(1); }
 void onhup(int n) {
   signal(SIGINT, SIG_IGN);
@@ -427,26 +416,6 @@ void onhup(int n) {
   }
   fchange = 0;
   quit(0);
-}
-void onintr(int n) { signal(SIGINT, onintr);
-  putchr_('\n');
-  lastc = '\n';
-  error(Q);
-}
-
-void print(void) {  unsigned int *a1 = addr1;
-  nonzero();
-  do {
-    if (listn) {  count = a1 - zero;
-      putd();
-      putchr_('\t');
-    }
-    puts_(getline_blk(*a1++));
-  }  while (a1 <= addr2);
-  dot = addr2;
-  listf = 0;
-  listn = 0;
-  pflag = 0;
 }
 void putchr_(int ac) {  char *lp = linp;  int c = ac;
   if (listf) {
@@ -477,13 +446,11 @@ void putchr_(int ac) {  char *lp = linp;  int c = ac;
   }
   linp = lp;
 }
-
 void putd(void) {  int r = count % 10;   //******* putd() counts and prints the number of characters in the text file
   count /= 10;
   if (count) { putd(); }
   putchr_(r + '0');
 }
-
 void putfile(void) {  unsigned int *a1;
   char *fp, *lp;
   int n, nib = BLKSIZE;
@@ -504,7 +471,6 @@ void putfile(void) {  unsigned int *a1;
   n = (int)(fp-genbuf);
   if (write(io, genbuf, n) != n) {  puts_(WRERR);  error(Q); }
 }
-
 int putline(void) {  char *bp, *lp;
   int nl = nleft;
   unsigned int tl;
@@ -530,7 +496,6 @@ void quit(int n) {
   unlink(tfname);
   exit(0);
 }
-
 void setnoaddr(void) { if (given) { error(Q); } }
 void setwide(void) { addr1 = zero + (dol>zero);  addr2 = dol; }
 void squeeze(int i) { if (addr1 < zero+i || addr2 > dol || addr1 > addr2) { error(Q); } }
