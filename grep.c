@@ -415,7 +415,7 @@ void onhup(int n) {
     if (io > 0) { putfile(); }
   }
   fchange = 0;
-  quit(0);
+  exit(0);
 }
 void putchr_(int ac) {  char *lp = linp;  int c = ac;
   if (listf) {
@@ -490,11 +490,6 @@ int putline(void) {  char *bp, *lp;
 void puts_(char *sp) {  col = 0;   //******* puts_() prints the char* reference and puts a newline at the end of string
   while (*sp) { putchr_(*sp++); }
   putchr_('\n');
-}
-void quit(int n) {
-  if (vflag && fchange && dol!=zero) {  fchange = 0;  error(Q);  }
-  unlink(tfname);
-  exit(0);
 }
 void setnoaddr(void) { if (given) { error(Q); } }
 void setwide(void) { addr1 = zero + (dol>zero);  addr2 = dol; }
