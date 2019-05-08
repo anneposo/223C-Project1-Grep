@@ -1,3 +1,4 @@
+//VERSION_INFO_EXPORT_DECL = "\n#import \"grep.h\"\n";
 #include <signal.h>
 #include <setjmp.h>
 #include <unistd.h>
@@ -8,6 +9,11 @@
 #include "grep.h"
 typedef void  (*SIG_TYP)(int);
 #define BUFSIZE 100
+
+//const int NBLK = 2047, KSIZE = 9, CCIRC = 15, READ = 0, WRITE = 1;
+//int  vflag  = 1, tfile  = -1, iblock  = -1, oblock  = -1, bpagesize = 20, regexp_index = 0;
+//unsigned nlall = 128;
+//char  Q[] = "", T[] = "TMP", tmpXXXXX[50] = "/tmp/eXXXXX", WRERR[]  = "WRITE ERROR", *linp  = line;
 
 int main(int argc, char *argv[]) {  //char *p1, *p2;
   if (argc != 3) { printf("Missing a regexp or file to be searched...\n"); return 0; } //checks if minimum requirements are input
@@ -83,9 +89,9 @@ void compile(int eof) {
     switch (c) {
       case '\\': if ((c = getchr())=='(') {
           if (nbra >= NBRA) { cerror(); }
-          *bracketp++ = nbra;
+          *bracketp++ = (char)nbra;
           *ep++ = CBRA;
-          *ep++ = nbra++;
+          *ep++ = (char)nbra++;
           continue;
         }
         if (c == ')') {
@@ -95,7 +101,7 @@ void compile(int eof) {
           continue;
         }
         if (c>='1' && c<'1'+NBRA) { *ep++ = CBACK;
-          *ep++ = c-'1';
+          *ep++ = (char) c-'1';
           continue;
         }
         *ep++ = CCHR;
@@ -324,7 +330,7 @@ char * getblock(unsigned int atl, int iof) {  int off = (atl<<1) & (BLKSIZE-1) &
   oblock = bno;
   return(obuff+off);
 }
-char inputbuf[GBSIZE];
+static char inputbuf[GBSIZE];
 
 int getchr(void) {  char c;
   if ((lastc=peekc)) {  peekc = 0;  return(lastc); }
