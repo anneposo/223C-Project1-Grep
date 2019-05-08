@@ -106,7 +106,7 @@ void compile(int eof) {
         }
         *ep++ = CCHR;
         if (c=='\n') { cerror(); }
-        *ep++ = c;
+        *ep++ = (char)c;
         continue;
       case '.': *ep++ = CDOT;  continue;
       case '\n':  cerror();
@@ -127,11 +127,11 @@ void compile(int eof) {
               if (ep >= &expbuf[ESIZE]) { cerror(); }
             }
           }
-          *ep++ = c;
+          *ep++ = (char)c;
           cclcnt++;
           if (ep >= &expbuf[ESIZE]) { cerror(); }
         } while ((c = getchr()) != ']');
-        lastep[1] = cclcnt;
+        lastep[1] = (char)cclcnt;
         continue;
     }
   }
@@ -154,19 +154,19 @@ void global(int k) {
        c = getchr();
        if (c != '\n') { *gp++ = '\\'; }
      }
-     *gp++ = c;
+     *gp++ = (char)c;
      if (gp >= &globuf[GBSIZE-2]) { error(Q); }
   }
   if (gp == globuf) { *gp++ = 'p'; }
   *gp++ = '\n';
   *gp++ = 0;
   for (a1 = zero; a1 <= dol; a1++) {
-    *a1 &= ~01;
+    *a1 &= (unsigned int)~01;
     if (a1>=addr1 && a1<=addr2 && execute(a1)==k) { *a1 |= 01; }
    }
   for (a1 = zero; a1 <= dol; a1++) {
     if (*a1 & 01) {
-      *a1 &= ~01;
+      *a1 &= (unsigned int)~01;
       dot = a1;
       globp = globuf;
       print_genbuf();
@@ -219,8 +219,8 @@ int advance(char *lp, char *ep) {  char *curlp;  int i;
       case CEOF:  loc2 = lp;  return(1);
       case CCL:   if (cclass(ep, *lp++, 1)) {  ep += *ep;  continue; }  return(0);
       case NCCL:  if (cclass(ep, *lp++, 0)) { ep += *ep;  continue; }  return(0);
-      case CBRA:  braslist[*ep++] = lp;  continue;
-      case CKET:  braelist[*ep++] = lp;  continue;
+      case CBRA:  braslist[(unsigned char)*ep++] = lp;  continue;
+      case CKET:  braelist[(unsigned char)*ep++] = lp;  continue;
       case CBACK:
         if (braelist[i = *ep++] == 0) { error(Q); }
         if (backref(i, lp)) { lp += braelist[i] - braslist[i];  continue; }  return(0);
@@ -244,13 +244,13 @@ int star(char *lp, char* ep, char* curlp) {
   return(0);
 }
 
-int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot, *tl;  int nline;  nline = 0;  dot = a;
+int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot, *tl = NULL;  int nline;  nline = 0;  dot = a;
   while ((*f)() == 0) {
     if ((dol-zero)+1 >= nlall) {  unsigned *ozero = zero;  nlall += 1024;
-      if ((zero = (unsigned *)realloc((char *)zero, nlall*sizeof(unsigned)))==NULL) {  error("MEM?");  onhup(0);  }
+      if ((zero = (unsigned *)realloc((char *)zero, nlall*sizeof(unsigned)))==NULL) {  error("MEM?");  onhup();  }
       dot += zero - ozero;  dol += zero - ozero;
     }
-    *tl = putline();
+    *tl = (unsigned int)putline();
     nline++;
     a1 = ++dol;
     a2 = a1+1;
@@ -277,7 +277,7 @@ int cclass(char *set, int c, int af) {
   while (--n) { if (*set++ == c) { return(af); } }
   return(!af);
 }
-void defchar(int c, char *ep) { *ep++ = CCHR;  *ep++ = c; } // created function defchar to remove goto statements
+void defchar(int c, char *ep) { *ep++ = CCHR;  *ep++ = (char)c; } // created function defchar to remove goto statements
 void cerror(){  expbuf[0] = 0;  nbra = 0;  error(Q); } // created function cerror to remove goto statements
 
 void error(char *s) {
@@ -289,7 +289,7 @@ void error(char *s) {
   globp = 0;
   peekc = lastc;
   if(lastc) { while ((c = getchr()) != '\n' && c != EOF) { } }
-  if (io > 0) { close(io);  io = -1; }  longjmp(savej, 1);
+  if (io > 0) { close(io);  io = -1; }  //longjmp(savej, 1);
 }
 
 int execute(unsigned int *addr) {  char *p1, *p2 = expbuf;
@@ -314,7 +314,7 @@ int execute(unsigned int *addr) {  char *p1, *p2 = expbuf;
   return(0);
 }
 
-char * getblock(unsigned int atl, int iof) {  int off = (atl<<1) & (BLKSIZE-1) & ~03, bno = (atl/(BLKSIZE/2));
+char * getblock(unsigned int atl, int iof) {  int off = (atl<<1) & (BLKSIZE-1) & (unsigned int)~03, bno = (atl/(BLKSIZE/2));
   if (bno >= NBLK) {  lastc = '\n';  error(T);  }
   nleft = BLKSIZE - off;
   if (bno==iblock) {  ichanged |= iof;  return(ibuff+off);  }
@@ -338,18 +338,19 @@ int getchr(void) {  char c;
     globp = 0;
     return(EOF);
   }
-  if ((c = getchr_()) <= 0) { return(lastc = EOF); }
+  if ((c = (char)getchr_()) <= 0) { return(lastc = EOF); }
+  exit(0);
 }
 
 int getchr_() {
-  char c = (regexp_index > 0) ? regexp_buf[--regexp_index] : getchar();
+  char c = (regexp_index > 0) ? regexp_buf[--regexp_index] : (char)getchar();
   lastc = c&0177;
   return lastc;
 }
 void ungetch_(int c) {
   if (regexp_index >= BUFSIZE) {
     printf("ungetch: overflow\n");
-  } else { regexp_buf[regexp_index++] = c; }
+  } else { regexp_buf[regexp_index++] = (char)c; }
 }
 int getfile(void) {
   int c;
@@ -367,7 +368,7 @@ int getfile(void) {
     }
     c = *fp++;  if (c=='\0') { continue; }  //****************************************************puts file read into genbuf into c string
     if (c&0200 || lp >= &linebuf[LBSIZE]) {  lastc = '\n';  error(Q);  }
-    *lp++ = c;
+    *lp++ = (char)c;
     count++; // adds newline as last character
   } while (c != '\n');
   *--lp = 0;
@@ -379,7 +380,7 @@ char* getline_blk(unsigned int tl) {
   int nl = nleft;
   lp = linebuf;
   bp = getblock(tl, READ);
-  tl &= ~((BLKSIZE/2)-1);
+  tl &= (unsigned int)~((BLKSIZE/2)-1);
   while ((*lp++ = *bp++)) {
     if (--nl == 0) {  bp = getblock(tl+=(BLKSIZE/2), READ);  nl = nleft;  }
   }
@@ -412,7 +413,7 @@ void init(void) {  int *markp;
   memset(inputbuf, 0, sizeof(inputbuf));
 }
 void nonzero(void) { squeeze(1); }
-void onhup(int n) {
+void onhup(void) {
   signal(SIGINT, SIG_IGN);
   signal(SIGHUP, SIG_IGN);
   if (dol > zero) {  addr1 = zero+1;
@@ -421,7 +422,7 @@ void onhup(int n) {
     if (io > 0) { putfile(); }
   }
   fchange = 0;
-  exit(0);
+  //exit(0);
 }
 void putchr_(int ac) {  char *lp = linp;  int c = ac;
   if (listf) {
@@ -438,16 +439,16 @@ void putchr_(int ac) {  char *lp = linp;  int c = ac;
       }
       else if (c<' ' || c=='\177') {
         *lp++ = '\\';
-        *lp++ =  (c>>6) +'0';
+        *lp++ =  (char)((c>>6) + '0');
         *lp++ = ((c >> 3) & 07) + '0';
-        c = (c & 07) + '0';
+        c = (c & 07) + (char)'0';
         col += 3;
       }
     }
   }
-  *lp++ = c;
+  *lp++ = (char)c;
   if (c == '\n' || lp >= &line[64]) {  linp = line;
-    write(oflag ? 2 : 1, line, lp - line);
+    write(oflag ? 2 : 1, line, (unsigned long)(lp - line));
     return;
   }
   linp = lp;
@@ -459,14 +460,15 @@ void putd(void) {  int r = count % 10;   //******* putd() counts and prints the 
 }
 void putfile(void) {  unsigned int *a1;
   char *fp, *lp;
-  int n, nib = BLKSIZE;
+  unsigned int n;
+  int nib = BLKSIZE;
   fp = genbuf;
   a1 = addr1;
   do {
     lp = getline_blk(*a1++);
     for (;;) {
       if (--nib < 0) {
-        n = (int)(fp-genbuf);
+        n = (unsigned int)(fp-genbuf);
         if (write(io, genbuf, n) != n) {  puts_(WRERR);  error(Q);  }
         nib = BLKSIZE-1;
         fp = genbuf;
@@ -474,7 +476,7 @@ void putfile(void) {  unsigned int *a1;
       count++;  if ((*fp++ = *lp++) == 0) {  fp[-1] = '\n';  break; }
     }
   } while (a1 <= addr2);
-  n = (int)(fp-genbuf);
+  n = (unsigned int)(fp-genbuf);
   if (write(io, genbuf, n) != n) {  puts_(WRERR);  error(Q); }
 }
 int putline(void) {  char *bp, *lp;
@@ -482,9 +484,9 @@ int putline(void) {  char *bp, *lp;
   unsigned int tl;
   fchange = 1;
   lp = linebuf;
-  tl = tline;
+  tl = (unsigned int)tline;
   bp = getblock(tl, WRITE);
-  tl &= ~((BLKSIZE/2)-1);
+  tl &= (unsigned int)~((BLKSIZE/2)-1);
   while ((*bp = *lp++)) {
     if (*bp++ == '\n') {  *--bp = 0;  linebp = lp;  break;  }
     if (--nl == 0) {  bp = getblock(tl += (BLKSIZE/2), WRITE);  nl = nleft;  }

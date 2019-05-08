@@ -61,7 +61,7 @@ int getfile(void);
 char *getline_blk(unsigned int tl);  int getnum(void);
 void global(int k);  //where grep command functions
 void init(void);
-void newline(void);  void nonzero(void);  void onhup(int n);
+void newline(void);  void nonzero(void);  void onhup(void);
 void onintr(int n);  char *place(char *sp, char *l1, char *l2);
 void print(void);
 void putchr_(int ac);
