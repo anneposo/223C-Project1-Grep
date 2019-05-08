@@ -6,6 +6,6 @@ Name: Anne Poso
 
 CWID: 889236576
 
-# Grep Sample Run from 04/07/2019 commits
+# Grep Sample Run
 
-![grep](https://user-images.githubusercontent.com/43505612/57343825-c1142000-70f9-11e9-8f4d-2b3c5bf24854.png)
+![grep](https://user-images.githubusercontent.com/43505612/57346394-2f111500-7103-11e9-9928-6ade8b8d2569.png)
