@@ -1,4 +1,3 @@
-//VERSION_INFO_EXPORT_DECL = "\n#import \"grep.h\"\n";
 #include <signal.h>
 #include <setjmp.h>
 #include <unistd.h>
@@ -9,11 +8,6 @@
 #include "grep.h"
 typedef void  (*SIG_TYP)(int);
 #define BUFSIZE 100
-
-//const int NBLK = 2047, KSIZE = 9, CCIRC = 15, READ = 0, WRITE = 1;
-//int  vflag  = 1, tfile  = -1, iblock  = -1, oblock  = -1, bpagesize = 20, regexp_index = 0;
-//unsigned nlall = 128;
-//char  Q[] = "", T[] = "TMP", tmpXXXXX[50] = "/tmp/eXXXXX", WRERR[]  = "WRITE ERROR", *linp  = line;
 
 int main(int argc, char *argv[]) {  //char *p1, *p2;
   if (argc != 3) { printf("Missing a regexp or file to be searched...\n"); return 0; } //checks if minimum requirements are input
@@ -44,7 +38,6 @@ void readfile(const char* textfile){
   exfile();
 }
 
-//************************************exfile closes file, prints the text file's character count and appends newline
 void exfile(void) {
   close(io);
   io = -1;
@@ -57,7 +50,7 @@ void filename(const char* comm) {
 }
 
 void search_string(const char* regexp){
-  regexp_buf_init(regexp);
+  regexp_buf_init(regexp); // copies argv1 regular expression into a buffer called regexp_buf
   char buf[GBSIZE];
   snprintf(buf, sizeof(buf), "/%s\n", regexp);
   grepline();
@@ -244,19 +237,21 @@ int star(char *lp, char* ep, char* curlp) {
   return(0);
 }
 
-int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot, *tl = NULL;  int nline;  nline = 0;  dot = a;
+int append(int (*f)(void), unsigned int *a) {  unsigned int *a1, *a2, *rdot;
+  unsigned int tl;
+  int nline;  nline = 0;  dot = a;
   while ((*f)() == 0) {
     if ((dol-zero)+1 >= nlall) {  unsigned *ozero = zero;  nlall += 1024;
       if ((zero = (unsigned *)realloc((char *)zero, nlall*sizeof(unsigned)))==NULL) {  error("MEM?");  onhup();  }
       dot += zero - ozero;  dol += zero - ozero;
     }
-    *tl = (unsigned int)putline();
+    tl = (unsigned int)putline();
     nline++;
     a1 = ++dol;
     a2 = a1+1;
     rdot = ++dot;
     while (a1 > rdot) { *--a2 = *--a1; }
-    rdot = tl;
+    *rdot = tl;
   }
   return(nline);
 }
