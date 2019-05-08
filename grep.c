@@ -53,7 +53,6 @@ void search_string(const char* regexp){
   regexp_buf_init(regexp); // copies argv1 regular expression into a buffer called regexp_buf
   char buf[GBSIZE];
   snprintf(buf, sizeof(buf), "/%s\n", regexp);
-  grepline();
   printf("g%s", buf);
   const char* p = buf + strlen(buf) - 1;
   while (p >= buf) { ungetch_(*p--); }
@@ -166,7 +165,7 @@ void global(int k) {
       a1 = zero;
       break;
     }
-  } grepline();
+  }
 }
 
 void print_genbuf(){  // prints the lines from genbuf that matches the regexp
@@ -334,7 +333,7 @@ int getchr(void) {  char c;
     return(EOF);
   }
   if ((c = (char)getchr_()) <= 0) { return(lastc = EOF); }
-  exit(0);
+  return lastc;
 }
 
 int getchr_() {
@@ -385,12 +384,6 @@ int getnum(void) { int r = 0, c;
   while ((c = getchr())>='0' && c <= '9') { r = r * 10 + c - '0'; }
   peekc = c;
   return (r);
-}
-
-void grepline(void) { //  puts_("------------------------------------ ");
-  getchr();  // throw away newline after command
-  for (int i = 0; i < 50; ++i) { putchr_('-'); }
-  putchr_('\n');
 }
 
 void init(void) {  int *markp;

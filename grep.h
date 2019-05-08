@@ -74,7 +74,7 @@ void rdelete(unsigned int *ad1, unsigned int *ad2);  void reverse(unsigned int *
 void setwide(void);  void setnoaddr(void);  void squeeze(int);  void substitute(int inglob);
 static jmp_buf  savej;
 static char grepbuf[GBSIZE];
-void greperror(char);  void grepline(void);
+void greperror(char);  //void grepline(void);
 void cerror(void);  // created function to remove goto statements
 void defchar(int, char*); // created function to remove goto statements
 int star(char *lp, char* ep, char* curlp); // created function to remove goto statements
