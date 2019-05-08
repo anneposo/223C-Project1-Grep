@@ -8,4 +8,4 @@ CWID: 889236576
 
 # Grep Sample Run
 
-![grep](https://user-images.githubusercontent.com/43505612/57346394-2f111500-7103-11e9-9928-6ade8b8d2569.png)
+![grep](https://user-images.githubusercontent.com/43505612/57346726-86fc4b80-7104-11e9-887a-f45842b58501.png)
